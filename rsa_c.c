@@ -33,56 +33,30 @@ int main(int argc, char const *argv[])
 	char textToEncode[255];
 	long *encoded;
 	char *decoded;
-	//printf("Please enter the p: (needs to be prime)");
-	//scanf("%ld", &p);
-	p = 37;
+	printf("Please enter the p: (needs to be prime)");
+	scanf("%ld", &p);
 	if (!p) {
 		return 0;
 	}
-	//printf("Please enter the q: (needs to be prime)");
-	//scanf("%ld", &q);
-	q = 89;
+	printf("Please enter the q: (needs to be prime)");
+	scanf("%ld", &q);
 	if (!q) {
 		return 0;
 	}
 	n = p * q;
 	r = (p-1) * (q-1);
-	/*
-	  p   = 37
-	  q   = 39
-
-      e   = 101
-      d   = 941
-      
-      N   = 3293
-      r   = 3168
-      
-      e*d = 95041
-e*d mod r = 1
-e and N are relatively prime
-d and N are relatively prime
-e and r are relatively prime
-d and r are relatively prime
-
-
-
-	*/
-	printf("p is %ld, q is %ld, r (phi of n): %ld, n is %ld\n", p, q, r, n);
+	
 	for (long i = 40; i > 0; i--) {
 		k = (i * r) + 1;
-		printf("for k %ld\n", k);
 		if (getLargestPrimeFactor(k, primesForK) == 2) {
 			e = primesForK[0];
 			d = primesForK[1];
-			printf("\nk is %ld e is %ld d is %ld\n", k, e, d);
 			break;
 		}
 	}
-
-	//try putting all of that in 2 lines^
-	//d = modInverse(e , r);
-
-	printf("private key is %ld\n", d);
+	//printf("p is %ld, q is %ld, r (phi of n): %ld, n is %ld\n", p, q, r, n);
+	//printf("\nk is %ld e is %ld d is %ld\n", k, e, d);
+	//printf("private key is %ld\n", d);
 	printf("public key is %ld and %ld\n", n, e);
 	printf("Enter the text to encode: ");
 	scanf("%s", textToEncode);
@@ -98,24 +72,31 @@ long* encrypt(char const textToProcess[], long const n, long const e){
 	long max = strlen(textToProcess);
 	printf("%s strlen is %ld\n", textToProcess, max);
 	static long encodedText[255];
+	printf("%s\nencrypted is:\n", textToProcess);
 	for (i = 0; i<max ; i++) {
 		long c = textToProcess[i];
 		c = modpow(c, e, n);
 		encodedText[i] = c;
-		printf("%d encrypted is %ld\n", textToProcess[i], encodedText[i]);
+		printf("%ld",encodedText[i]);
 	}
 	return encodedText;
 }
 char* decrypt(const long encoded[255], long const d, long const n) {
 	long i;
 	long max = 255;
+	long _d;
+	//_d = e;
 	static char decodedText[255];
+	printf("please enter your private key, d:");
+	scanf("%ld", &_d);
+	printf("%ld\ndecrypted is:\n", encoded);
 	for (i = 0; i<max, encoded[i]!=NULL ; i++) {
 		long c = encoded[i];
-		c = modpow(c, d, n);
+		c = modpow(c, _d, n);
 		decodedText[i] = c;
-		printf("%ld decrypted is %d\n", encoded[i], decodedText[i]);
+		printf("%c", decodedText[i]);
 	}
+	printf("\n");
 	return decodedText;
 }
 
