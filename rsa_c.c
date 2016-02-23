@@ -8,11 +8,9 @@
 long* encrypt(char const textToProcess[], long const p, long const q);
 char* decrypt(const long encoded[], long const p, long const q);
 long* getFactorsForNumber(long n);
-long modInverse(long a, long m);
-long gcd(long a, long b);
-long gcdExtended(long a, long b, long *x, long *y);
 long modpow(long base,long exponent,long modulus);
-char power(long n, long e);
+void clear(void);
+void printLong(const long *longToPrint);
 int main(int argc, char const *argv[])
 
 {
@@ -20,15 +18,14 @@ int main(int argc, char const *argv[])
 	long publicKey[2];
 	long primesForK[2];
 	/*
-	p = prime 1;
-	q = prime 2;
-	n = p * q;
-	r = phi of n
+p = prime 1;
+q = prime 2;
+n = p * q;
+r = phi of n
 
-	e = exponent, greater than 1, less than phi of n, and not a factor of p or q
-	d = private key
-	public key = n and e
-
+e = exponent, greater than 1, less than phi of n, and not a factor of p or q
+d = private key
+public key = n and e
 	*/
 	char textToEncode[255];
 	long *encoded;
@@ -54,12 +51,12 @@ int main(int argc, char const *argv[])
 			break;
 		}
 	}
-	//printf("p is %ld, q is %ld, r (phi of n): %ld, n is %ld\n", p, q, r, n);
-	//printf("\nk is %ld e is %ld d is %ld\n", k, e, d);
-	//printf("private key is %ld\n", d);
 	printf("public key is %ld and %ld\n", n, e);
+	printf("private key is %ld\n", d);
 	printf("Enter the text to encode: ");
-	scanf("%s", textToEncode);
+	clear();
+	fgets(textToEncode, 255, stdin);
+	textToEncode[strlen(textToEncode)-1] = '\0';
 	encoded = encrypt(textToEncode, n , e);
 	decoded = decrypt(encoded, d, n);
 
@@ -67,30 +64,34 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-long* encrypt(char const textToProcess[], long const n, long const e){
+long* encrypt(char const textToProcess[255], long const n, long const e){
 	long i;
 	long max = strlen(textToProcess);
-	printf("%s strlen is %ld\n", textToProcess, max);
-	static long encodedText[255];
+	static long encoded[255];
 	printf("%s\nencrypted is:\n", textToProcess);
 	for (i = 0; i<max ; i++) {
 		long c = textToProcess[i];
 		c = modpow(c, e, n);
-		encodedText[i] = c;
-		printf("%ld",encodedText[i]);
+		encoded[i] = c;
 	}
-	return encodedText;
+	printLong(encoded);
+	return encoded;
 }
 char* decrypt(const long encoded[255], long const d, long const n) {
 	long i;
 	long max = 255;
 	long _d;
-	//_d = e;
+	if (d) {
+		_d = d;
+	} else {
+		printf("\nplease enter your private key, d:");
+		scanf("%ld", &_d);
+	}
 	static char decodedText[255];
-	printf("please enter your private key, d:");
-	scanf("%ld", &_d);
-	printf("%ld\ndecrypted is:\n", encoded);
-	for (i = 0; i<max, encoded[i]!=NULL ; i++) {
+	
+	printLong(encoded);
+	printf("\ndecrypted is:\n");
+	for (i = 0; i<max && encoded[i]!='\0' ; i++) {
 		long c = encoded[i];
 		c = modpow(c, _d, n);
 		decodedText[i] = c;
@@ -99,6 +100,13 @@ char* decrypt(const long encoded[255], long const d, long const n) {
 	printf("\n");
 	return decodedText;
 }
+
+void printLong(const long longToPrint[255]) {
+	for (int i=0;i < 255 && longToPrint[i]!='\0';i++) {
+	    printf("%ld",longToPrint[i]);
+	}
+
+};
 
 long *getFactorsForNumber(long n) {
 	long i;
@@ -109,54 +117,6 @@ long *getFactorsForNumber(long n) {
 		}
 	}
 	return 0;
-}
-
-// Function to find modulo inverse of a
-long modInverse(long a, long m)
-{
-    long x, y;
-    long g = gcdExtended(a, m, &x, &y);
-    if (g != 1)
-        return -1;
-    else
-    {
-        // m is added to handle negative x
-        long res = (x % m + m) % m;
-        return res;
-    }
-    
-}
- 
-// C function for extended Euclidean Algorithm
-long gcdExtended(long a, long b, long *x, long *y)
-{
-    // Base Case
-    if (a == 0)
-    {
-        *x = 0, *y = 1;
-        return b;
-    }
- 
-    long x1, y1; // To store results of recursive call
-    long gcd = gcdExtended(b % a, a, &x1, &y1);
- 
-    // Update x and y using results of recursive
-    // call
-    *x = y1 - (b/a) * x1;
-    *y = x1;
- 
-    return gcd;
-}
-
-long gcd ( long a, long b )
-{
-  long c;
-  while ( a != 0 ) {
-     c = a;
-     a = b%a;
-     b = c;
-  }
-  return b;
 }
 
 //template <typename T>
@@ -170,18 +130,7 @@ long modpow(long base, long exponent, long modulus) {
   }
   return result;
 }
-char power(long n, long e) {
-	// if (e == 0) {
-	// 	return 0;
-	// }
-	int i = 0;
-	printf("%ld to the power of %ld is:", n, e);
-	for (i = 0; i < e; i++) {
-		n *= n;
-	}
-	printf("%ld\n", n);
-	return (char) n;
+
+void clear(void) {
+	while ( getchar() != '\n' );
 }
-
-
-

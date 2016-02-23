@@ -4,13 +4,11 @@
 // A function to print all prime factors of a given number n
 long getLargestPrimeFactor(long n, long *primes)
 {
-    //primes = malloc(2*sizeof(long));
     long numberOfPrimeFactors;
-    // Print the number of 2s that divide n
     while (n%2 == 0)
     {
         primes[numberOfPrimeFactors] = (long) 2;
-        printf("prime: %ld numberOfPrimeFactors: %ld\n", (long) 2, numberOfPrimeFactors++);
+        numberOfPrimeFactors++;
         n = n/2;
     }
  
@@ -21,7 +19,7 @@ long getLargestPrimeFactor(long n, long *primes)
         while (n%i == 0)
         {
             primes[numberOfPrimeFactors] = i;
-            printf("prime: %ld numberOfPrimeFactors: %ld\n", i, numberOfPrimeFactors++);
+            numberOfPrimeFactors++;
             n = n/i;
         }
     }
@@ -30,9 +28,7 @@ long getLargestPrimeFactor(long n, long *primes)
     // greater than 2
     if (n > 2) {
         primes[numberOfPrimeFactors] = n;
-        printf("prime: %ld numberOfPrimeFactors: %ld \n", n, numberOfPrimeFactors++);
+        numberOfPrimeFactors++;
     }
-    printf("\n***numberOfPrimeFactors: %ld***\n", numberOfPrimeFactors);
-    printf("***primes[0]:%ldprimes[1]:%ld***\n\n", primes[0], primes[1]);
     return numberOfPrimeFactors;
 }
