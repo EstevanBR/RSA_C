@@ -30,12 +30,12 @@ public key = n and e
 	char textToEncode[255];
 	long *encoded;
 	char *decoded;
-	printf("Please enter the p: (needs to be prime)");
+	printf("Please enter the p (needs to be prime): ");
 	scanf("%ld", &p);
 	if (!p) {
 		return 0;
 	}
-	printf("Please enter the q: (needs to be prime)");
+	printf("Please enter the q (needs to be prime): ");
 	scanf("%ld", &q);
 	if (!q) {
 		return 0;
@@ -53,9 +53,12 @@ public key = n and e
 	}
 	printf("public key is %ld and %ld\n", n, e);
 	printf("private key is %ld\n", d);
-	printf("Enter the text to encode: ");
+	printf("Enter the text to encode (ctrl+D) when done: ");
 	clear();
-	fgets(textToEncode, 255, stdin);
+	int i;
+	while ((textToEncode[i] = getchar())!=EOF) {
+		i++;
+	}
 	textToEncode[strlen(textToEncode)-1] = '\0';
 	encoded = encrypt(textToEncode, n , e);
 	decoded = decrypt(encoded, d, n);
