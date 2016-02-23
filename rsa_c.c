@@ -67,7 +67,7 @@ d and r are relatively prime
 
 
 	*/
-	printf("p is %ld, q is %ld, r (phi of n): %ld\n", p, q, r);
+	printf("p is %ld, q is %ld, r (phi of n): %ld, n is %ld\n", p, q, r, n);
 	for (long i = 40; i > 0; i--) {
 		k = (i * r) + 1;
 		printf("for k %ld\n", k);
@@ -112,7 +112,8 @@ char* decrypt(const long encoded[255], long const d, long const n) {
 	static char decodedText[255];
 	for (i = 0; i<max, encoded[i]!=NULL ; i++) {
 		long c = encoded[i];
-		decodedText[i] = c % n;
+		c = modpow(c, d, n);
+		decodedText[i] = c;
 		printf("%ld decrypted is %d\n", encoded[i], decodedText[i]);
 	}
 	return decodedText;
