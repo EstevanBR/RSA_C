@@ -5,15 +5,13 @@
 #include <math.h>
 #include "primefac.h"
 
-long* encrypt(char const textToProcess[], long const p, long const q);
-char* decrypt(const long encoded[], long const p, long const q);
+long* encrypt(char const *textToProcess, long const p, long const q);
+char* decrypt(const long *encoded, long const p, long const q);
 long* getFactorsForNumber(long n);
 long modpow(long base,long exponent,long modulus);
 void clear(void);
 void printLong(const long *longToPrint);
-int main(int argc, char const *argv[])
-
-{
+int main(int argc, char const *argv[]) {
 	long p,q,n,d,r,e,k;
 	long publicKey[2];
 	long primesForK[2];
@@ -60,16 +58,18 @@ public key = n and e
 		i++;
 	}
 	textToEncode[strlen(textToEncode)-1] = '\0';
-	encoded = encrypt(textToEncode, n , e);
+	char newString[strlen(textToEncode)];
+	strcpy(newString, textToEncode);
+	encoded = encrypt(newString, n , e);
 	decoded = decrypt(encoded, d, n);
 
 	printf("Done.\n");
 	return 0;
 }
 
-long* encrypt(char const textToProcess[255], long const n, long const e){
+long* encrypt(char const *textToProcess, long const n, long const e){
 	long i;
-	long max = strlen(textToProcess);
+	int max = sizeof(textToProcess) / sizeof(textToProcess[0]);
 	static long encoded[255];
 	printf("%s\nencrypted is:\n", textToProcess);
 	for (i = 0; i<max ; i++) {
@@ -78,11 +78,14 @@ long* encrypt(char const textToProcess[255], long const n, long const e){
 		encoded[i] = c;
 	}
 	printLong(encoded);
+	FILE *fp = fopen("encoded", "wb");
+	fwrite(encoded, sizeof(long), sizeof(encoded), fp);
+	fclose(fp);
 	return encoded;
 }
-char* decrypt(const long encoded[255], long const d, long const n) {
+char* decrypt(const long *encoded, long const d, long const n) {
 	long i;
-	long max = 255;
+	int max = 255;//sizeof(encoded) / sizeof(encoded[0]);
 	long _d;
 	if (d) {
 		_d = d;
@@ -93,9 +96,19 @@ char* decrypt(const long encoded[255], long const d, long const n) {
 	static char decodedText[255];
 	
 	printLong(encoded);
+	printf("\ngetting encoded from file\n");
+	FILE *fp = fopen("encoded", "rb");
+	long buffer[255];
+	fseek(fp, SEEK_SET, 0);
+	int bytes = fread(buffer, sizeof(long) * 255, 1, fp);
+	fclose(fp);
+	printf("read %d bytes", bytes);
+	printLong(buffer);
+
+
 	printf("\ndecrypted is:\n");
-	for (i = 0; i<max && encoded[i]!='\0' ; i++) {
-		long c = encoded[i];
+	for (i = 0; i<max && buffer[i]!=EOF ; i++) {
+		long c = buffer[i];
 		c = modpow(c, _d, n);
 		decodedText[i] = c;
 		printf("%c", decodedText[i]);
