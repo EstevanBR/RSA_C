@@ -69,17 +69,18 @@ public key = n and e
 
 long* encrypt(char const *textToProcess, long const n, long const e){
 	long i;
-	int max = sizeof(textToProcess) / sizeof(textToProcess[0]);
+	int max = 255;
 	static long encoded[255];
 	printf("%s\nencrypted is:\n", textToProcess);
-	for (i = 0; i<max ; i++) {
-		long c = textToProcess[i];
+	for (i = 0; i<max && textToProcess[i]!='\0' ; i++) {
+		long c = (long) textToProcess[i];
 		c = modpow(c, e, n);
 		encoded[i] = c;
 	}
+	printf("printLong (1)\n");
 	printLong(encoded);
-	FILE *fp = fopen("encoded", "wb");
-	fwrite(encoded, sizeof(long), sizeof(encoded), fp);
+	FILE *fp = fopen("data.enc", "wb");
+	fwrite(encoded, sizeof(long), 255, fp);
 	fclose(fp);
 	return encoded;
 }
@@ -95,16 +96,16 @@ char* decrypt(const long *encoded, long const d, long const n) {
 	}
 	static char decodedText[255];
 	
+	printf("printLong (2)\n");
 	printLong(encoded);
 	printf("\ngetting encoded from file\n");
-	FILE *fp = fopen("encoded", "rb");
+	FILE *fp = fopen("data.enc", "rb");
 	long buffer[255];
 	fseek(fp, SEEK_SET, 0);
-	int bytes = fread(buffer, sizeof(long) * 255, 1, fp);
+	long bytes = fread(buffer, sizeof(long), 255, fp);
 	fclose(fp);
-	printf("read %d bytes", bytes);
+	printf("read %ld bytes\n", bytes);
 	printLong(buffer);
-
 
 	printf("\ndecrypted is:\n");
 	for (i = 0; i<max && buffer[i]!=EOF ; i++) {
@@ -114,12 +115,16 @@ char* decrypt(const long *encoded, long const d, long const n) {
 		printf("%c", decodedText[i]);
 	}
 	printf("\n");
+
+	fp = fopen("data.dec", "w");
+	fwrite(decodedText, 255, 1, fp);
+	fclose(fp);
 	return decodedText;
 }
 
 void printLong(const long longToPrint[255]) {
-	for (int i=0;i < 255 && longToPrint[i]!='\0';i++) {
-	    printf("%ld",longToPrint[i]);
+	for (int i=0;i < 255 && longToPrint[i]!=EOF;i++) {
+	    printf("%ld ",longToPrint[i]);
 	}
 
 };
