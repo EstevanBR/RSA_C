@@ -3,48 +3,40 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
-//#include "primefac.h"
+#include <ctype.h>
+#define BLURB "\nCRYPT:\n\tlate Middle English\n\t(in the sense ‘cavern’):\n\tfrom Latin crypta,\n\tfrom Greek kruptē\n\t‘a vault,’ from kruptos ‘hidden.’\n\n"
 
-long* encrypt(char const *textToProcess, long const p, long const q);
-char* decrypt(const long *encoded, long const p, long const q);
+void encrypt(char const *textToProcess, long const p, long const q);
+void decrypt(const long *encoded, long const p, long const q);
 long modpow(long base,long exponent,long modulus);
 void clear(void);
-void printLong(const long *longToPrint);
 long modInverse(long, long);
 long gcd(long, long);
 long gcdExtended(long, long, long*, long*);
-
+char *inputString(FILE* fp, size_t size, char terminatingCharacter);
+long getLongFromFile(FILE *fp);
 
 int main(int argc, char const *argv[]) {
+	printf(BLURB);
 	long p,q,n,d,r,e,k;
 	long publicKey[2];
 	long primesForK[2];
-	char textToEncode[255];
 	long *encoded;
 	char *decoded;
 	printf("Please enter the p (needs to be prime): ");
-	scanf("%ld", &p);
+	p = getLongFromFile(stdin);
 	if (!p) {
+		printf("\007ERROR\n\tp was not read from input properly");
 		return 0;
 	}
 	printf("Please enter the q (needs to be prime): ");
-	scanf("%ld", &q);
+	q = getLongFromFile(stdin);
 	if (!q) {
+		printf("\007ERROR\n\tq was not read from input properly");
 		return 0;
 	}
 	n = p * q;
 	r = (p-1) * (q-1);
-	
-	/*
-	for (long i = 40; i > 0; i--) {
-		k = (i * r) + 1;
-		if (getLargestPrimeFactor(k, primesForK) == 2) {
-			e = primesForK[0];
-			d = primesForK[1];
-			break;
-		}
-	}*/
-
 	// get a valid e
 	for (long i = 3; i < r; i++){
 		// e needs to be coprime to r
@@ -62,87 +54,93 @@ int main(int argc, char const *argv[]) {
 	// so modinverse is the same as x^-1 mod y
 	d = modInverse(e, r);
 
-	printf("\npublic key is %ld and %ld\n", n, e);
-	printf("private key is %ld\n", d);
-	printf("Enter the text to encode (ctrl+D) when done: ");
-	clear();
-	int i;
-	while ((textToEncode[i] = getchar())!=EOF) {
-		i++;
-	}
-	textToEncode[strlen(textToEncode)-1] = '\0';
-	char newString[strlen(textToEncode)];
-	strcpy(newString, textToEncode);
-	encoded = encrypt(newString, n , e);
-	decoded = decrypt(encoded, d, n);
-
-	printf("Done.\n");
+	printf("\n***public  key is e %ld:n %ld\n", e, n);
+	printf(  "***private key is d %ld\n", d);
+	char choice[8];
+	do {
+		printf("Would you like to encrypt or decrypt or quit?\nEnter Choice:_______\b\b\b\b\b\b\b");
+		strcpy(choice,inputString(stdin, sizeof(char),'\n'));
+		for(int i; choice[i];i++) {
+			choice[i] = tolower(choice[i]);
+		}
+		if (strncmp(choice, "encrypt", strlen(choice)) == 0){
+			printf("Please enter text to encrypt, terminate with CTRL+D\n");
+			char *textToEncrypt = inputString(stdin,10,'\0');
+			encrypt(textToEncrypt, n , e);
+			break;
+		} else if (strncmp(choice, "decrypt", strlen(choice)) == 0) {
+			//printf("Please enter text to decrypt, terminate with CTRL+D");
+			decrypt(encoded, 0, 0);
+			break;
+		}
+		if ('q' == tolower(choice[0])) {
+			break;
+		}
+	} while (1);
+	printf("\nDone.\n");
 	return 0;
 }
 
-long* encrypt(char const *textToProcess, long const n, long const e){
+/*FUNCTION DEFINITIONS*/
+
+void encrypt(char const *textToProcess, long const n, long const e){
+	long max = (long) strlen(textToProcess);
+	printf("max is %ld, n is %ld, e is %ld", max, n, e);
+	long encoded[max];
+	long _n = n;
+	long _e = e;
+	if (!n) {
+		printf("please enter n");
+		scanf("%ld", &_n);		
+	}
+	if (!e) {
+		printf("please enter e");
+		scanf("%ld", &_e);
+	}
 	long i;
-	int max = 255;
-	static long encoded[255];
-	printf("%s\nencrypted is:\n", textToProcess);
-	for (i = 0; i<max && textToProcess[i]!='\0' ; i++) {
+	for (i = 0; i < max; i++) {
 		long c = (long) textToProcess[i];
-		c = modpow(c, e, n);
+		c = modpow(c, _e, _n);
 		encoded[i] = c;
 	}
-	printf("printLong (1)\n");
-	printLong(encoded);
 	FILE *fp = fopen("data.enc", "wb");
-	fwrite(encoded, sizeof(long), 255, fp);
+	fwrite(encoded, sizeof(long), max, fp);
 	fclose(fp);
-	return encoded;
-}//
-char* decrypt(const long *encoded, long const d, long const n) {
-	long i;
-	int max = 255;//sizeof(encoded) / sizeof(encoded[0]);
-	long _d;
-	if (d) {
-		_d = d;
-	} else {
+}
+void decrypt(const long *encoded, long const d, long const n) {
+	long _d = d;
+	long _n = n;
+	if (!d) {
 		printf("\nplease enter your private key, d:");
 		scanf("%ld", &_d);
 	}
-	static char decodedText[255];
-	
-	printf("printLong (2)\n");
-	printLong(encoded);
-	printf("\ngetting encoded from file\n");
+	if (!n) {
+		printf("\nplease enter the public key, n:");
+		scanf("%ld", &_n);
+	}
 	FILE *fp = fopen("data.enc", "rb");
-	long buffer[255];
+	fseek(fp, 0L, SEEK_END);
+	long max = ftell(fp) / sizeof(long);
+	long buffer[max];
+	printf("max is %ld", max);
 	fseek(fp, SEEK_SET, 0);
-	long bytes = fread(buffer, sizeof(long), 255, fp);
+	long bytes = fread(buffer, sizeof(long), max, fp);
 	fclose(fp);
-	printf("read %ld bytes\n", bytes);
-	printLong(buffer);
-
+	
+	char decodedText[max];
 	printf("\ndecrypted is:\n");
-	for (i = 0; i<max && buffer[i]!=EOF ; i++) {
+	for (long i = 0; i < max;i++) {
 		long c = buffer[i];
-		c = modpow(c, _d, n);
+		c = modpow(c, _d, _n);
 		decodedText[i] = c;
 		printf("%c", decodedText[i]);
 	}
-	printf("\n");
 
 	fp = fopen("data.dec", "w");
-	fwrite(decodedText, 255, 1, fp);
+	fwrite(decodedText, max, 1, fp);
 	fclose(fp);
-	return decodedText;
 }
 
-void printLong(const long longToPrint[255]) {
-	for (int i=0;i < 255 && longToPrint[i]!=EOF;i++) {
-	    printf("%ld ",longToPrint[i]);
-	}
-
-};
-
-//template <typename T>
 long modpow(long base, long exponent, long modulus) {
   base %= modulus;
   long result = 1;
@@ -203,4 +201,31 @@ long gcd( long a, long b )
      b = c;
   }
   return b;
+}
+
+long getLongFromFile(FILE *fp) {
+	char *aString = inputString(fp, 10, '\n');
+	long aLong;
+	sscanf(aString,"%ld", &aLong);
+	return aLong;
+};
+
+//http://stackoverflow.com/a/16871702
+char *inputString(FILE* fp, size_t size, char terminatingCharacter){
+//The size is extended by the input with the value of the provisional
+    char *str;
+    int ch;
+    size_t len = 0;
+    str = realloc(NULL, sizeof(char)*size);//size is start size
+    if(!str)return str;
+    while(EOF!=(ch=fgetc(fp)) && ch != terminatingCharacter) {
+        str[len++]=ch;
+        if(len==size){
+            str = realloc(str, sizeof(char)*(size+=16));
+            if(!str)return str;
+        }
+    }
+    str[len++]='\0';
+
+    return realloc(str, sizeof(char)*len);
 }
