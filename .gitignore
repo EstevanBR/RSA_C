@@ -1,2 +1,5 @@
 *.out
-/rsa
+*.enc
+*.dec
+*.input
+

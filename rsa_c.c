@@ -11,20 +11,15 @@ long* getFactorsForNumber(long n);
 long modpow(long base,long exponent,long modulus);
 void clear(void);
 void printLong(const long *longToPrint);
+long modInverse(long, long);
+long gcd(long, long);
+long gcdExtended(long, long, long*, long*);
+
+
 int main(int argc, char const *argv[]) {
 	long p,q,n,d,r,e,k;
 	long publicKey[2];
 	long primesForK[2];
-	/*
-p = prime 1;
-q = prime 2;
-n = p * q;
-r = phi of n
-
-e = exponent, greater than 1, less than phi of n, and not a factor of p or q
-d = private key
-public key = n and e
-	*/
 	char textToEncode[255];
 	long *encoded;
 	char *decoded;
@@ -41,6 +36,7 @@ public key = n and e
 	n = p * q;
 	r = (p-1) * (q-1);
 	
+	/*
 	for (long i = 40; i > 0; i--) {
 		k = (i * r) + 1;
 		if (getLargestPrimeFactor(k, primesForK) == 2) {
@@ -48,8 +44,26 @@ public key = n and e
 			d = primesForK[1];
 			break;
 		}
+	}*/
+
+	// get a valid e
+	for (long i = 3; i < r; i++){
+		// e needs to be coprime to r
+		// which means vvvv
+		if (gcd(i, r) == 1) {
+			// if found then set e and break
+			e = i;
+			break;
+		}
 	}
-	printf("public key is %ld and %ld\n", n, e);
+
+	// d needs to satisfy <d*e = 1 mod r>
+	// mathematically then, d = e^-1 mod r
+	// a note, x^-1 is the "inverse" of x
+	// so modinverse is the same as x^-1 mod y
+	d = modInverse(e, r);
+
+	printf("\npublic key is %ld and %ld\n", n, e);
 	printf("private key is %ld\n", d);
 	printf("Enter the text to encode (ctrl+D) when done: ");
 	clear();
@@ -154,4 +168,51 @@ long modpow(long base, long exponent, long modulus) {
 
 void clear(void) {
 	while ( getchar() != '\n' );
+}
+
+long modInverse(long a, long m)
+{
+    long x, y;
+    long g = gcdExtended(a, m, &x, &y);
+    if (g != 1)
+        return -1;
+    else
+    {
+        // m is added to handle negative x
+        long res = (x % m + m) % m;
+        return res;
+    }
+    
+}
+ 
+// C function for extended Euclidean Algorithm
+long gcdExtended(long a, long b, long *x, long *y)
+{
+    // Base Case
+    if (a == 0)
+    {
+        *x = 0, *y = 1;
+        return b;
+    }
+ 
+    long x1, y1; // To store results of recursive call
+    long g = gcdExtended(b % a, a, &x1, &y1);
+ 
+    // Update x and y using results of recursive
+    // call
+    *x = y1 - (b/a) * x1;
+    *y = x1;
+ 
+    return g;
+}
+
+long gcd( long a, long b )
+{
+  long c;
+  while ( a != 0 ) {
+     c = a;
+     a = b%a;
+     b = c;
+  }
+  return b;
 }
