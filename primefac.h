@@ -1,1 +1,0 @@
-long getLargestPrimeFactor(long n, long *primes);

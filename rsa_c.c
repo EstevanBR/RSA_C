@@ -7,7 +7,6 @@
 
 long* encrypt(char const *textToProcess, long const p, long const q);
 char* decrypt(const long *encoded, long const p, long const q);
-//long* getFactorsForNumber(long n);
 long modpow(long base,long exponent,long modulus);
 void clear(void);
 void printLong(const long *longToPrint);
@@ -142,17 +141,6 @@ void printLong(const long longToPrint[255]) {
 	}
 
 };
-/*
-long *getFactorsForNumber(long n) {
-	long i;
-	printf("Factors of %ld are:\n", n);
-	for(i=1;i<=n;++i) {
-		if(n%i!=0) {
-			printf("%ld%c",i, i % 10 ? '\n':' ');
-		}
-	}
-	return 0;
-}*/
 
 //template <typename T>
 long modpow(long base, long exponent, long modulus) {
