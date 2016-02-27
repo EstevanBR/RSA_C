@@ -3,11 +3,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
-#include "primefac.h"
+//#include "primefac.h"
 
 long* encrypt(char const *textToProcess, long const p, long const q);
 char* decrypt(const long *encoded, long const p, long const q);
-long* getFactorsForNumber(long n);
+//long* getFactorsForNumber(long n);
 long modpow(long base,long exponent,long modulus);
 void clear(void);
 void printLong(const long *longToPrint);
@@ -142,7 +142,7 @@ void printLong(const long longToPrint[255]) {
 	}
 
 };
-
+/*
 long *getFactorsForNumber(long n) {
 	long i;
 	printf("Factors of %ld are:\n", n);
@@ -152,7 +152,7 @@ long *getFactorsForNumber(long n) {
 		}
 	}
 	return 0;
-}
+}*/
 
 //template <typename T>
 long modpow(long base, long exponent, long modulus) {
