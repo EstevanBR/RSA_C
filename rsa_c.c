@@ -83,7 +83,7 @@ long* encrypt(char const *textToProcess, long const n, long const e){
 	fwrite(encoded, sizeof(long), 255, fp);
 	fclose(fp);
 	return encoded;
-}
+}//
 char* decrypt(const long *encoded, long const d, long const n) {
 	long i;
 	int max = 255;//sizeof(encoded) / sizeof(encoded[0]);
