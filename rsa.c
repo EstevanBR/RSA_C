@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#include <limits.h>
 #define BLURB "\nCRYPT:\n\tlate Middle English\n\t(in the sense ‘cavern’):\n\tfrom Latin crypta,\n\tfrom Greek kruptē\n\t‘a vault,’ from kruptos ‘hidden.’\n\n"
 
 void encryptToFile (char const *textToProcess, unsigned long const p, unsigned long const q, const char *fileName);
@@ -15,9 +16,9 @@ unsigned long gcd(unsigned long, unsigned long);
 unsigned long gcdExtended(unsigned long, unsigned long, unsigned long*, unsigned long*);
 char *inputString(FILE* fp, size_t size, char terminatingCharacter);
 unsigned long getUnsignedLongFromStream(FILE *fp);
+int validateN(unsigned long n);
 
 int main(int argc, char const *argv[]) {
-	printf("sizeof(unsigned long) %lu", sizeof(unsigned long));
 	for (int i = 1; i < argc; i++) {
 		printf("%d: %s ", i, argv[i]);
 	}
@@ -28,19 +29,24 @@ int main(int argc, char const *argv[]) {
 	static unsigned long *encoded;
 	static char *decoded;
 
-	printf("Please enter the p (needs to be prime): ");
-	p = getUnsignedLongFromStream(stdin);
-	if (!p) {
-		printf("ERROR p was not read from input properly\007");
-		return -1;
-	}
-	printf("Please enter the q (needs to be prime): ");
-	q = getUnsignedLongFromStream(stdin);
-	if (!q) {
-		printf("ERROR q was not read from input properly\007");
-		return -1;
-	}
-	n = p * q;
+	do {
+		if (!validateN(n)) {
+			printf("\nPick smaller primes (p * q needs to be less than %lu\n\007",(unsigned long) sqrt(ULONG_MAX));	
+		}
+		printf("Please enter the p (needs to be prime): ");
+		p = getUnsignedLongFromStream(stdin);
+		if (!p) {
+			printf("ERROR p was not read from input properly\007");
+			return -1;
+		}
+		printf("Please enter the q (needs to be prime): ");
+		q = getUnsignedLongFromStream(stdin);
+		if (!q) {
+			printf("ERROR q was not read from input properly\007");
+			return -1;
+		}
+		n = p * q;
+	} while (!validateN(n));
 	r = (p-1) * (q-1);
 	// get a valid e
 	for (unsigned long i = 3; i < r; i++){
@@ -49,15 +55,18 @@ int main(int argc, char const *argv[]) {
 		if (gcd(i, r) == 1) {
 			// if found then set e and break
 			e = i;
-			break;
+			// d needs to satisfy <d*e = 1 mod r>
+			// mathematically then, d = e^-1 mod r
+			// a note, x^-1 is the "inverse" of x
+			// so modinverse is the same as x^-1 mod y
+			d = modInverse(e, r);
+			if (d*e % r == 1) {
+				break;
+			}
 		}
 	}
 
-	// d needs to satisfy <d*e = 1 mod r>
-	// mathematically then, d = e^-1 mod r
-	// a note, x^-1 is the "inverse" of x
-	// so modinverse is the same as x^-1 mod y
-	d = modInverse(e, r);
+	//printf("confirm d*e = 1 (mod r), where d = %lu,\ne = %lu\nd*e mod r =%lu", d, e, (d*e) % r);
 
 	printf("\n***public  key is e %lu\nn %lu\n", e, n);
 	printf(  "***private key is d %lu\n", d);
@@ -87,8 +96,8 @@ int main(int argc, char const *argv[]) {
 
 /*FUNCTION DEFINITIONS*/
 
-void encryptToFile(char const *textToProcess, unsigned long const n, unsigned long const e, const char *fileName){
-	unsigned long max = (unsigned long) strlen(textToProcess);
+void encryptToFile(char const *textToEncrypt, unsigned long const n, unsigned long const e, const char *fileName){
+	unsigned long max = (unsigned long) strlen(textToEncrypt)+1;
 	//printf("\nmax is %lu, n is %lu, e is %lu", max, n, e);
 	unsigned long encoded[max];
 	unsigned long _n = n;
@@ -103,9 +112,9 @@ void encryptToFile(char const *textToProcess, unsigned long const n, unsigned lo
 	}
 	unsigned long i;
 	for (i = 0; i < max; i++) {
-		unsigned long c = (unsigned long) textToProcess[i];
-		c = modpow(c, _e, _n);
-		encoded[i] = c;
+		//printf("\nencoding %c / %d as", textToEncrypt[i], textToEncrypt[i]);
+		encoded[i] = modpow(textToEncrypt[i], _e, _n);
+		//printf("\n		 %c / %lu", (char) encoded[i], encoded[i]);
 	}
 	FILE *fp = fopen(fileName, "wb");
 	fwrite(encoded, sizeof(unsigned long), max, fp);
@@ -127,22 +136,19 @@ void decryptFromFileToFile(unsigned long const d, unsigned long const n, const c
 		fseek(fp, 0L, SEEK_END);
 		unsigned long max = ftell(fp) / sizeof(unsigned long);
 		unsigned long buffer[max];
-		printf("max is %lu", max);
+		//printf("max is %lu", max);
 		fseek(fp, SEEK_SET, 0);
 		unsigned long bytes = fread(buffer, sizeof(unsigned long), max, fp);
 		fclose(fp);
 		
 		char decodedText[max];
-		printf("\ndecrypted is:\n");
 		for (unsigned long i = 0; i < max;i++) {
-			unsigned long c = buffer[i];
-			c = modpow(c, _d, _n);
-			decodedText[i] = c;
-			printf("%c", decodedText[i]);
+			decodedText[i] = modpow(buffer[i], _d, _n);
 		}
+		printf("decodedText:\n# BEGIN #\n%s\n# END #\n", decodedText);
 		fp = fopen(fileNameDest, "w");
 		if (fp) {
-			fwrite(decodedText, max, 1, fp);
+			fwrite(decodedText, 1, max, fp);
 			fclose(fp);
 		} else {
 			printf("ERROR  FAILED TO OPEN DESTINATION FILE\007");
@@ -164,7 +170,7 @@ unsigned long modpow(unsigned long base, unsigned long exponent, unsigned long m
     base = (base * base) % modulus;
     exponent >>= 1;
   }
-  return (unsigned long) result;
+  return result;
 }
 
 void clear(void) {
@@ -254,3 +260,7 @@ char *inputString(FILE* fp, size_t size, char terminatingCharacter){
 
     return realloc(str, sizeof(char)*len);
 }
+
+int validateN(unsigned long n) {
+	return (n < (unsigned long) sqrt(ULONG_MAX));
+};
