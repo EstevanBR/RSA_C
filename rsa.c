@@ -5,22 +5,22 @@
 #include <math.h>
 #include <ctype.h>
 #include <limits.h>
-#define BLURB "\nCRYPT:\n\tlate Middle English\n\t(in the sense ‘cavern’):\n\tfrom Latin crypta,\n\tfrom Greek kruptē\n\t‘a vault,’ from kruptos ‘hidden.’\n\n"
+#define BLURB "\n\nCRYPT:\n\tlate Middle English\n\t(in the sense ‘cavern’):\n\tfrom Latin crypta,\n\tfrom Greek kruptē\n\t‘a vault,’ from kruptos ‘hidden.’\n\n\n"
 
 void encryptToFile (char const *textToProcess, unsigned long const p, unsigned long const q, const char *fileName);
 void decryptFromFileToFile(unsigned long const p, unsigned long const q, const char *fileName, const char *fileNameDest);
 unsigned long modpow(unsigned long base,unsigned long exponent,unsigned long modulus);
 void clear(void);
-unsigned long modInverse(unsigned long, unsigned long);
-unsigned long gcd(unsigned long, unsigned long);
-unsigned long gcdExtended(unsigned long, unsigned long, unsigned long*, unsigned long*);
-char *inputString(FILE* fp, size_t size, char terminatingCharacter);
+unsigned long modInverse (unsigned long, unsigned long);
+unsigned long gcd (unsigned long, unsigned long);
+unsigned long gcdExtended (unsigned long, unsigned long, unsigned long*, unsigned long*);
+char *inputString (FILE* fp, size_t size, char terminatingCharacter);
 unsigned long getUnsignedLongFromStream(FILE *fp);
 int validateN(unsigned long n);
 
 int main(int argc, char const *argv[]) {
 	for (int i = 1; i < argc; i++) {
-		printf("%d: %s ", i, argv[i]);
+		printf("%d: %s\n", i, argv[i]);
 	}
 	printf(BLURB);
 	static unsigned long p,q,n,d,r,e,k;
@@ -28,68 +28,75 @@ int main(int argc, char const *argv[]) {
 	static unsigned long primesForK[2];
 	static unsigned long *encoded;
 	static char *decoded;
-
-	do {
-		if (!validateN(n)) {
-			printf("\nPick smaller primes (p * q needs to be less than %lu\n\007",(unsigned long) sqrt(ULONG_MAX));	
-		}
-		printf("Please enter the p (needs to be prime): ");
-		p = getUnsignedLongFromStream(stdin);
-		if (!p) {
-			printf("ERROR p was not read from input properly\007");
-			return -1;
-		}
-		printf("Please enter the q (needs to be prime): ");
-		q = getUnsignedLongFromStream(stdin);
-		if (!q) {
-			printf("ERROR q was not read from input properly\007");
-			return -1;
-		}
-		n = p * q;
-	} while (!validateN(n));
-	r = (p-1) * (q-1);
-	// get a valid e
-	for (unsigned long i = 3; i < r; i++){
-		// e needs to be coprime to r
-		// which means vvvv
-		if (gcd(i, r) == 1) {
-			// if found then set e and break
-			e = i;
-			// d needs to satisfy <d*e = 1 mod r>
-			// mathematically then, d = e^-1 mod r
-			// a note, x^-1 is the "inverse" of x
-			// so modinverse is the same as x^-1 mod y
-			d = modInverse(e, r);
-			if (d*e % r == 1) {
+	printf("Would you like to encrypt or decrypt or quit?\nEnter Choice:_______\b\b\b\b\b\b\b");
+	char choice[8];
+	strcpy(choice,inputString(stdin, sizeof(char),'\n'));
+	for(int i; choice[i];i++) {
+		choice[i] = tolower (choice[i]);
+	}
+	if (choice[0] == 'e') {
+		do {
+			if (!n) {
+				printf("Enter n (0 if you don't have n): ");
+				n = getUnsignedLongFromStream(stdin);
+			}
+			if (!e) {
+				printf("Enter e (0 if you don't have e): ");
+				e = getUnsignedLongFromStream(stdin);
+			}
+			
+			if (!validateN(n)) {
+				printf("\nn is too big... Pick smaller primes (p * q needs to be less than %lu\n\007",(unsigned long) sqrt(ULONG_MAX));	
+			}
+			printf("Please enter the p (needs to be prime): ");
+			p = getUnsignedLongFromStream(stdin);
+			if (!p) {
+				printf("ERROR p was not read from input properly\007");
 				break;
 			}
+			printf("Please enter the q (needs to be prime): ");
+			q = getUnsignedLongFromStream(stdin);
+			if (!q) {
+				printf("ERROR q was not read from input properly\007");
+				break;
+			}
+			n = p * q;
+			r = (p-1) * (q-1);
+		} while (!validateN(n));
+	// get a valid e
+		for (unsigned long i = 3; i < r; i++){
+			// e needs to be coprime to r
+			// which means vvvv
+			if (gcd(i, r) == 1) {
+				// if found then set e and break
+				e = i;
+				// d needs to satisfy <d*e = 1 mod r>
+				// mathematically then, d = e^-1 mod r
+				// a note, x^-1 is the "inverse" of x
+				// so modinverse is the same as x^-1 mod y
+				d = modInverse(e, r);
+				if (d*e % r == 1) {
+					break;
+				}
+			}
 		}
-	}
-
 	//printf("confirm d*e = 1 (mod r), where d = %lu,\ne = %lu\nd*e mod r =%lu", d, e, (d*e) % r);
-
-	printf("\n***public  key is e %lu\nn %lu\n", e, n);
-	printf(  "***private key is d %lu\n", d);
-	char choice[8];
-	do {
-		printf("Would you like to encrypt or decrypt or quit?\nEnter Choice:_______\b\b\b\b\b\b\b");
-		strcpy(choice,inputString(stdin, sizeof(char),'\n'));
-		for(int i; choice[i];i++) {
-			choice[i] = tolower(choice[i]);
-		}
-		if (strncmp(choice, "encrypt", strlen(choice)) == 0){
+	printf(	"\n*** Public  key e is %lu\n"
+			  "*** Public  key n is %lu\n"
+			  "*** Private key is d %lu (do not distribute)\n", e, n, d);
 			printf("Please enter text to encrypt, terminate with CTRL+D\n");
 			char *textToEncrypt = inputString(stdin,10,'\0');
 			encryptToFile(textToEncrypt, n , e, "data.enc");
-			break;
-		} else if (strncmp(choice, "decrypt", strlen(choice)) == 0) {
+			printf("\n");
+			return -1;
+		}
+		if (choice[0] == 'd') {
 			decryptFromFileToFile(d, n, "data.enc", "data.dec");
-			break;
+			return -1;
 		}
-		if ('q' == tolower(choice[0])) {
-			break;
+		if (choice[0] == 'q') {
+			return -1;
 		}
-	} while (1);
 	printf("\nDone.\n");
 	return 0;
 }
@@ -103,12 +110,12 @@ void encryptToFile(char const *textToEncrypt, unsigned long const n, unsigned lo
 	unsigned long _n = n;
 	unsigned long _e = e;
 	if (!n) {
-		printf("please enter n");
-		scanf("%lu", &_n);		
+		printf("Please enter n: ");
+		_n = getUnsignedLongFromStream(stdin);
 	}
 	if (!e) {
-		printf("please enter e");
-		scanf("%lu", &_e);
+		printf("Please enter e: ");
+		_e = getUnsignedLongFromStream(stdin);
 	}
 	unsigned long i;
 	for (i = 0; i < max; i++) {
@@ -124,12 +131,12 @@ void decryptFromFileToFile(unsigned long const d, unsigned long const n, const c
 	unsigned long _d = d;
 	unsigned long _n = n;
 	if (!d) {
-		printf("\nplease enter your private key, d:");
-		scanf("%lu", &_d);
+		printf("Please the your private key, d: ");
+		_d = getUnsignedLongFromStream(stdin);
 	}
 	if (!n) {
-		printf("\nplease enter the public key, n:");
-		scanf("%lu", &_n);
+		printf("Please enter the public key, n: ");
+		_n = getUnsignedLongFromStream(stdin);
 	}
 	FILE *fp = fopen(fileNameSource, "rb");
 	if (fp) {
@@ -145,7 +152,7 @@ void decryptFromFileToFile(unsigned long const d, unsigned long const n, const c
 		for (unsigned long i = 0; i < max;i++) {
 			decodedText[i] = modpow(buffer[i], _d, _n);
 		}
-		printf("decodedText:\n# BEGIN #\n%s\n# END #\n", decodedText);
+		printf("\n# BEGIN DECODED TEXT #\n%s\n# END DECODED TEXT #\n", decodedText);
 		fp = fopen(fileNameDest, "w");
 		if (fp) {
 			fwrite(decodedText, 1, max, fp);
