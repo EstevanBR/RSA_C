@@ -17,6 +17,7 @@ char *inputString(FILE* fp, size_t size, char terminatingCharacter);
 unsigned long getUnsignedLongFromStream(FILE *fp);
 
 int main(int argc, char const *argv[]) {
+	printf("sizeof(unsigned long) %lu", sizeof(unsigned long));
 	for (int i = 1; i < argc; i++) {
 		printf("%d: %s ", i, argv[i]);
 	}
@@ -155,13 +156,15 @@ void decryptFromFileToFile(unsigned long const d, unsigned long const n, const c
 
 unsigned long modpow(unsigned long base, unsigned long exponent, unsigned long modulus) {
   base %= modulus;
+  //printf("\n\n%-10s%10lu", "modulus", modulus);
   unsigned long result = 1;
   while (exponent > 0) {
+  	//printf("\n%-10s%10lu,%-10s%10lu,%-10s%c", "base", base, "exponent",exponent,"result", (char) result);
     if (exponent & 1) result = (result * base) % modulus;
     base = (base * base) % modulus;
     exponent >>= 1;
   }
-  return result;
+  return (unsigned long) result;
 }
 
 void clear(void) {
