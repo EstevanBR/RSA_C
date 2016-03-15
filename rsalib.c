@@ -71,6 +71,7 @@ void decryptFromFileToFile(unsigned long const d, unsigned long const n, const c
 		printf("Please enter the public key, n: ");
 		_n = getUnsignedLongFromStream(stdin);
 	}
+	printf("attempting to decrypt using _d %lu and _n %lu\n", _d, _n);
 	FILE *fp = fopen(fileNameSource, "rb");
 	if (fp) {
 		fseek(fp, 0L, SEEK_END);

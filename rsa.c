@@ -8,16 +8,6 @@
 #include "rsalib.h"
 #define BLURB "\n\nCRYPT:\n\tlate Middle English\n\t(in the sense ‘cavern’):\n\tfrom Latin crypta,\n\tfrom Greek kruptē\n\t‘a vault,’ from kruptos ‘hidden.’\n\n\n"
 
-// void encryptToFile (char const *textToProcess, unsigned long const p, unsigned long const q, const char *fileName);
-// void decryptFromFileToFile(unsigned long const p, unsigned long const q, const char *fileName, const char *fileNameDest);
-// unsigned long modpow(unsigned long base,unsigned long exponent,unsigned long modulus);
-// void clear(void);
-// unsigned long modInverse (unsigned long, unsigned long);
-// unsigned long gcd (unsigned long, unsigned long);
-// unsigned long gcdExtended (unsigned long, unsigned long, unsigned long*, unsigned long*);
-// char *inputString (FILE* fp, size_t size, char terminatingCharacter);
-// unsigned long getUnsignedLongFromStream(FILE *fp);
-// int validateN(unsigned long n);
 
 int test(void);
 
