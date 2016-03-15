@@ -19,13 +19,16 @@
 // unsigned long getUnsignedLongFromStream(FILE *fp);
 // int validateN(unsigned long n);
 
+int test(void);
+
 int main(int argc, char const *argv[]) {
+	test();
 	for (int i = 1; i < argc; i++) {
 		printf("%d: %s\n", i, argv[i]);
 	}
 	printf(BLURB);
 
-	static unsigned long p,q,n,d,r,e,k;
+	static unsigned long p,q,n,d,r,e;
 	static unsigned long *encoded;
 	static char *decoded;
 
@@ -64,42 +67,49 @@ int main(int argc, char const *argv[]) {
 			n = getN(p, q);
 			r = getR(p, q);
 		} while (!validateN(n));
-		for (unsigned long i = 3; i < r; i++){
-			// e needs to be coprime to r
-			// which means vvvv
-			if (gcd(i, r) == 1) {
-				// if found then set e and break
-				e = i;
-				// d needs to satisfy <d*e = 1 mod r>
-				// mathematically then, d = e^-1 mod r
-				// a note, x^-1 is the "inverse" of x
-				// so modinverse is the same as x^-1 mod y
-				d = modInverse(e, r);
-				if (d*e % r == 1) {
-					break;
-				}
-			}
-		}
-	//printf("confirm d*e = 1 (mod r), where d = %lu,\ne = %lu\nd*e mod r =%lu", d, e, (d*e) % r);
-	printf(	"\n*** Public  key e is %lu\n"
-			  "*** Public  key n is %lu\n"
-			  "*** Private key is d %lu (do not distribute)\n", e, n, d);
-			printf("Please enter text to encrypt, terminate with CTRL+D\n");
-			char *textToEncrypt = inputString(stdin,10,'\0');
-			encryptToFile(textToEncrypt, n , e, "data.enc");
-			printf("\n");
-			return -1;
-		}
-		if (choice[0] == 'd') {
-			decryptFromFileToFile(d, n, "data.enc", "data.dec");
-			return -1;
-		}
-		if (choice[0] == 'q') {
-			return -1;
-		}
+		getEandD(r, &e, &d);
+		//printf("confirm d*e = 1 (mod r), where d = %lu,\ne = %lu\nd*e mod r =%lu", d, e, (d*e) % r);
+		printf("\n*** Public key e is                      %lu\n"
+			     "*** Public key n is                      %lu\n"
+			     "*** Private key d is (do not distribute) %lu\n", e, n, d);
+		printf("Please enter text to encrypt, terminate with CTRL+D\n");
+		char *textToEncrypt = inputString(stdin,10,'\0');
+		encryptToFile(textToEncrypt, n , e, "data.enc");
+		printf("\n");
+		return -1;
+	}
+	if (choice[0] == 'd') {
+		decryptFromFileToFile(d, n, "data.enc", "data.dec");
+		return -1;
+	}
+	if (choice[0] == 'q') {
+		return -1;
+	}
 	printf("\nDone.\n");
 	return 0;
 }
 
 /*FUNCTION DEFINITIONS*/
 
+
+int test(void) {
+	unsigned long p,q,n,d,r,e;
+	// unsigned long *encoded;
+	// char *decoded;
+	char choice[8] = "encrypt";
+	p = 151;
+	q = 233;
+	n = p*q;
+	r = (p-1)*(q-1);
+	printf("%lu", r);
+	getEandD(r, &e, &d);
+	if (e != 7) {
+		printf("from test, e is %lu\n", e);
+		return -1;
+	}
+	if (d != 9943) {
+		printf("from test, d is %lu\n", d);
+		return -1;
+	}
+	return 0;
+}

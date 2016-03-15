@@ -6,32 +6,37 @@
 #include <ctype.h>
 #include <limits.h>
 #include "rsalib.h"
+
 unsigned long getN(unsigned long p, unsigned long q) {
 	return p * q;
 }
+
 unsigned long getR(unsigned long p, unsigned long q) {
 	return (p-1) * (q-1);
 }
-unsigned long getE(unsigned long r) {
-	unsigned long e;
-	unsigned long d;
+
+void getEandD(unsigned long r, unsigned long *e, unsigned long *d) {
+	unsigned long E;
+	unsigned long D;
 	for (unsigned long i = 3; i < r; i++){
 	// e needs to be coprime to r
 	// which means vvvv
 		if (gcd(i, r) == 1) {
 			// if found then set e and break
-			e = i;
+			E = i;
 			// d needs to satisfy <d*e = 1 mod r>
 			// mathematically then, d = e^-1 mod r
 			// a note, x^-1 is the "inverse" of x
 			// so modinverse is the same as x^-1 mod y
-			d = modInverse(e, r);
-			if (d*e % r == 1) {
+            D = modInverse(E, r);
+			if (D*E % r == 1) {
 				break;
 			}
 		}
 	}
-	return e;
+    printf("right before e,d assignment");
+    (*e)=E;
+    (*d)=D;
 }
 
 void encryptToFile(char const *textToEncrypt, unsigned long const n, unsigned long const e, const char *fileName){

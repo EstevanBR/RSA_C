@@ -3,3 +3,5 @@
 *.dec
 *.input
 *.output
+*.o
+
