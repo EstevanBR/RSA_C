@@ -15,9 +15,10 @@ unsigned long getR(unsigned long p, unsigned long q) {
 	return (p-1) * (q-1);
 }
 
-void getEandD(unsigned long r, unsigned long *e, unsigned long *d) {
+bool getEandD(unsigned long r, unsigned long *e, unsigned long *d) {
 	unsigned long E;
 	unsigned long D;
+    bool found = false;
 	for (unsigned long i = 3; i < r; i++){
 	// e needs to be coprime to r
 	// which means vvvv
@@ -30,13 +31,18 @@ void getEandD(unsigned long r, unsigned long *e, unsigned long *d) {
 			// so modinverse is the same as x^-1 mod y
             D = modInverse(E, r);
 			if (D*E % r == 1) {
+                found = true;
 				break;
 			}
 		}
 	}
+    if (found == false) {
+        return false;
+    }
     printf("right before e,d assignment");
     (*e)=E;
     (*d)=D;
+    return true;
 }
 
 void encryptToFile(char const *textToEncrypt, unsigned long const n, unsigned long const e, const char *fileName){
@@ -78,6 +84,7 @@ void decryptFromFileToFile(unsigned long const d, unsigned long const n, const c
 		unsigned long max = ftell(fp) / sizeof(unsigned long);
 		unsigned long buffer[max];
 		fseek(fp, SEEK_SET, 0);
+        unsigned long bytes = fread(buffer, sizeof(unsigned long), max, fp);
 		fclose(fp);
 		
 		char decodedText[max];

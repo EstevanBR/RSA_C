@@ -57,7 +57,10 @@ int main(int argc, char const *argv[]) {
 			n = getN(p, q);
 			r = getR(p, q);
 		} while (!validateN(n));
-		getEandD(r, &e, &d);
+		bool found = getEandD(r, &e, &d);
+		if (found == false){
+			return -1;
+		} 
 		//printf("confirm d*e = 1 (mod r), where d = %lu,\ne = %lu\nd*e mod r =%lu", d, e, (d*e) % r);
 		printf("\n*** Public key e is                      %lu\n"
 			     "*** Public key n is                      %lu\n"
@@ -66,14 +69,14 @@ int main(int argc, char const *argv[]) {
 		char *textToEncrypt = inputString(stdin,10,'\0');
 		encryptToFile(textToEncrypt, n , e, "data.enc");
 		printf("\n");
-		return -1;
+		return 0;
 	}
 	if (choice[0] == 'd') {
 		decryptFromFileToFile(d, n, "data.enc", "data.dec");
-		return -1;
+		return 0;
 	}
 	if (choice[0] == 'q') {
-		return -1;
+		return 0;
 	}
 	printf("\nDone.\n");
 	return 0;

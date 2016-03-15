@@ -21,4 +21,4 @@ rsac.o: rsac.c rsalib.o
 	$(CC) $(CFLAGS) rsac.c rsalib.o
 
 clean:
-	rm *.o hello
+	rm *.o rsa
