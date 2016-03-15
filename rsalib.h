@@ -1,10 +1,12 @@
 void encryptToFile (char const *textToProcess, unsigned long const p, unsigned long const q, const char *fileName);
 void decryptFromFileToFile(unsigned long const p, unsigned long const q, const char *fileName, const char *fileNameDest);
 unsigned long modpow(unsigned long base,unsigned long exponent,unsigned long modulus);
-void clear(void);
 unsigned long modInverse (unsigned long, unsigned long);
 unsigned long gcd (unsigned long, unsigned long);
 unsigned long gcdExtended (unsigned long, unsigned long, unsigned long*, unsigned long*);
 char *inputString (FILE* fp, size_t size, char terminatingCharacter);
 unsigned long getUnsignedLongFromStream(FILE *fp);
 int validateN(unsigned long n);
+unsigned long getN(unsigned long p, unsigned long q);
+unsigned long getR(unsigned long p, unsigned long q);
+unsigned long getE(unsigned long r);

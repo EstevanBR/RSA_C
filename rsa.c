@@ -61,43 +61,27 @@ int main(int argc, char const *argv[]) {
 				printf("ERROR q was not read from input properly\007");
 				break;
 			}
-			n = p * q;
-			r = (p-1) * (q-1);
+			n = getN(p, q);
+			r = getR(p, q);
 		} while (!validateN(n));
-	// get a valid e
-		for (unsigned long i = 3; i < r; i++){
-			// e needs to be coprime to r
-			// which means vvvv
-			if (gcd(i, r) == 1) {
-				// if found then set e and break
-				e = i;
-				// d needs to satisfy <d*e = 1 mod r>
-				// mathematically then, d = e^-1 mod r
-				// a note, x^-1 is the "inverse" of x
-				// so modinverse is the same as x^-1 mod y
-				d = modInverse(e, r);
-				if (d*e % r == 1) {
-					break;
-				}
-			}
-		}
-	//printf("confirm d*e = 1 (mod r), where d = %lu,\ne = %lu\nd*e mod r =%lu", d, e, (d*e) % r);
-	printf(	"\n*** Public  key e is %lu\n"
-			  "*** Public  key n is %lu\n"
-			  "*** Private key is d %lu (do not distribute)\n", e, n, d);
-			printf("Please enter text to encrypt, terminate with CTRL+D\n");
-			char *textToEncrypt = inputString(stdin,10,'\0');
-			encryptToFile(textToEncrypt, n , e, "data.enc");
-			printf("\n");
-			return -1;
-		}
-		if (choice[0] == 'd') {
-			decryptFromFileToFile(d, n, "data.enc", "data.dec");
-			return -1;
-		}
-		if (choice[0] == 'q') {
-			return -1;
-		}
+		e = getE(r);
+		d = modInverse(e, r);
+		printf(	"\n*** Public  key e is %lu\n"
+			"*** Public  key n is %lu\n"
+			"*** Private key is d %lu (do not distribute)\n", e, n, d);
+		printf("Please enter text to encrypt, terminate with CTRL+D\n");
+		char *textToEncrypt = inputString(stdin,10,'\0');
+		encryptToFile(textToEncrypt, n , e, "data.enc");
+		printf("\n");
+		return -1;
+	}
+	if (choice[0] == 'd') {
+		decryptFromFileToFile(d, n, "data.enc", "data.dec");
+		return -1;
+	}
+	if (choice[0] == 'q') {
+		return -1;
+	}
 	printf("\nDone.\n");
 	return 0;
 }
