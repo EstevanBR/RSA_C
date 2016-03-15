@@ -33,13 +33,6 @@ int main(int argc, char const *argv[]) {
 	//some declarations
 	static unsigned long p,q,n,d,r,e;
 
-	// printf("Would you like to encrypt or decrypt or quit?\nEnter Choice: ");
-	// char choice[8];
-	// strcpy(choice,inputString(stdin, sizeof(char),'\n'));
-	// for(int i; choice[i];i++) {
-	// 	choice[i] = tolower (choice[i]);
-	// }
-
 	enum TaskType task;
 
 	if (strcmp(argv[1], "--dec") == 0 || strcmp(argv[1], "-d") == 0) {

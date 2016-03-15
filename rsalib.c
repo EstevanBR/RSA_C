@@ -30,12 +30,12 @@ bool getEandD(unsigned long r, unsigned long *e, unsigned long *d) {
 			// a note, x^-1 is the "inverse" of x
 			// so modinverse is the same as x^-1 mod y
             D = modInverse(E, r);
-			if (D*E % r == 1) {
+            if (D*E % r == 1) {
                 found = true;
-				break;
-			}
-		}
-	}
+                break;
+            }
+        }
+    }
     if (found == false) {
         return false;
     }
@@ -45,27 +45,38 @@ bool getEandD(unsigned long r, unsigned long *e, unsigned long *d) {
     return true;
 }
 
-void encryptToFile(char const *textToEncrypt, unsigned long const n, unsigned long const e, const char *fileName){
-	unsigned long max = (unsigned long) strlen(textToEncrypt)+1;
-	unsigned long encoded[max];
-	unsigned long _n = n;
-	unsigned long _e = e;
-	if (!n) {
-		printf("Please enter n: ");
-		_n = getUnsignedLongFromStream(stdin);
-	}
-	if (!e) {
-		printf("Please enter e: ");
-		_e = getUnsignedLongFromStream(stdin);
-	}
-	unsigned long i;
-	for (i = 0; i < max; i++) {
-		encoded[i] = modpow(textToEncrypt[i], _e, _n);
-	}
-	FILE *fp = fopen(fileName, "wb");
-	fwrite(encoded, sizeof(unsigned long), max, fp);
-	fclose(fp);
+void encrypt (char const * textToEncrypt, unsigned long * encoded, unsigned long const max, unsigned long const n, unsigned long const e) {
+    for (unsigned long i = 0; i < max; i++) {
+        encoded[i] = modpow(textToEncrypt[i], e, n);
+    }
 }
+
+void encryptToFile(char const *textToEncrypt, unsigned long const n, unsigned long const e, const char *fileName){
+    unsigned long const max = (unsigned long) strlen(textToEncrypt)+1;
+    unsigned long encoded[max];
+    unsigned long _n = n;
+    unsigned long _e = e;
+
+    if (!n) {
+        printf("Please enter n: ");
+        _n = getUnsignedLongFromStream(stdin);
+    }
+    if (!e) {
+        printf("Please enter e: ");
+        _e = getUnsignedLongFromStream(stdin);
+    }
+    encrypt(textToEncrypt, encoded, max, _n, _e);
+    FILE *fp = fopen(fileName, "wb");
+    fwrite(encoded, sizeof(unsigned long), max, fp);
+    fclose(fp);
+}
+
+void decrypt(unsigned long * toDecrypt, char * decrypted, unsigned long const max, unsigned long const d, unsigned long const n){
+    for (unsigned long i = 0; i < max; i++) {
+        decrypted[i] = modpow(toDecrypt[i], d, n);
+    }
+}
+
 void decryptFromFileToFile(unsigned long const d, unsigned long const n, const char *fileNameSource, const char *fileNameDest) {
 	unsigned long _d = d;
 	unsigned long _n = n;
@@ -81,16 +92,16 @@ void decryptFromFileToFile(unsigned long const d, unsigned long const n, const c
 	FILE *fp = fopen(fileNameSource, "rb");
 	if (fp) {
 		fseek(fp, 0L, SEEK_END);
-		unsigned long max = ftell(fp) / sizeof(unsigned long);
+		unsigned long const max = ftell(fp) / sizeof(unsigned long);
 		unsigned long buffer[max];
 		fseek(fp, SEEK_SET, 0);
         unsigned long bytes = fread(buffer, sizeof(unsigned long), max, fp);
 		fclose(fp);
-		
+        printf("%lu bytes read successfully", bytes);
+
 		char decodedText[max];
-		for (unsigned long i = 0; i < max;i++) {
-			decodedText[i] = modpow(buffer[i], _d, _n);
-		}
+
+		decrypt(buffer, decodedText,  max, _d, _n);
 		printf("\n# BEGIN DECODED TEXT #\n%s\n# END DECODED TEXT #\n", decodedText);
 		fp = fopen(fileNameDest, "w");
 		if (fp) {
@@ -117,44 +128,38 @@ unsigned long modpow(unsigned long base, unsigned long exponent, unsigned long m
   return result;
 }
 
-unsigned long modInverse(unsigned long a, unsigned long m)
-{
+unsigned long modInverse(unsigned long a, unsigned long m) {
     unsigned long x, y;
     unsigned long g = gcdExtended(a, m, &x, &y);
-    if (g != 1)
+    if (g != 1) {
         return -1;
-    else
-    {
+    } else {
         // m is added to handle negative x
         unsigned long res = (x % m + m) % m;
         return res;
     }
-    
 }
- 
+
 // C function for extended Euclidean Algorithm
-unsigned long gcdExtended(unsigned long a, unsigned long b, unsigned long *x, unsigned long *y)
-{
+unsigned long gcdExtended(unsigned long a, unsigned long b, unsigned long *x, unsigned long *y) {
     // Base Case
-    if (a == 0)
-    {
+    if (a == 0) {
         *x = 0, *y = 1;
         return b;
     }
- 
+
     unsigned long x1, y1; // To store results of recursive call
     unsigned long g = gcdExtended(b % a, a, &x1, &y1);
- 
+
     // Update x and y using results of recursive
     // call
     *x = y1 - (b/a) * x1;
     *y = x1;
- 
+
     return g;
 }
 
-unsigned long gcd( unsigned long a, unsigned long b )
-{
+unsigned long gcd( unsigned long a, unsigned long b ) {
   unsigned long c;
   while ( a != 0 ) {
      c = a;
