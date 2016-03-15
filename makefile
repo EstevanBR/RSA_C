@@ -5,8 +5,10 @@ all: rsa
 	make test
 
 test: rsa
-	./rsa < input1.txt
-	./rsa < input2.txt
+	./rsa -e    < input1.txt
+	./rsa --enc < input1.txt
+	./rsa -d    < input2.txt
+	./rsa --dec < input2.txt
 
 rsa: rsa.o rsalib.o
 	$(CC) rsa.o rsalib.o -o rsa

@@ -6,29 +6,53 @@
 #include <ctype.h>
 #include <limits.h>
 #include "rsalib.h"
+
 #define BLURB "\n\nCRYPT:\n\tlate Middle English\n\t(in the sense ‘cavern’):\n\tfrom Latin crypta,\n\tfrom Greek kruptē\n\t‘a vault,’ from kruptos ‘hidden.’\n\n\n"
 
 
 int test(void);
 
 int main(int argc, char const *argv[]) {
-	test();
+	int result = test();
+	// if test result is not good then f that crap and ret -1;
+	if (result != 0) {
+		return -1;
+	}
 	for (int i = 1; i < argc; i++) {
 		printf("%d: %s\n", i, argv[i]);
 	}
+
+	enum TaskType {
+		encrypt,
+		decrypt,
+		quit
+	};
+
 	printf(BLURB);
 
+	//some declarations
 	static unsigned long p,q,n,d,r,e;
-	static unsigned long *encoded;
-	static char *decoded;
 
-	printf("Would you like to encrypt or decrypt or quit?\nEnter Choice:_______\b\b\b\b\b\b\b");
-	char choice[8];
-	strcpy(choice,inputString(stdin, sizeof(char),'\n'));
-	for(int i; choice[i];i++) {
-		choice[i] = tolower (choice[i]);
+	// printf("Would you like to encrypt or decrypt or quit?\nEnter Choice: ");
+	// char choice[8];
+	// strcpy(choice,inputString(stdin, sizeof(char),'\n'));
+	// for(int i; choice[i];i++) {
+	// 	choice[i] = tolower (choice[i]);
+	// }
+
+	enum TaskType task;
+
+	if (strcmp(argv[1], "--dec") == 0 || strcmp(argv[1], "-d") == 0) {
+		task = decrypt;
+	} else if (strcmp(argv[1], "--enc") == 0 || strcmp(argv[1], "-e") == 0) {
+		task = encrypt;
+	} else {
+		task = quit;
+		//wtf
+		return 0;
 	}
-	if (choice[0] == 'e') {
+
+	if (task == encrypt) {
 		do {
 			if (!n) {
 				printf("Enter n (0 if you don't have n): ");
@@ -68,15 +92,8 @@ int main(int argc, char const *argv[]) {
 		printf("Please enter text to encrypt, terminate with CTRL+D\n");
 		char *textToEncrypt = inputString(stdin,10,'\0');
 		encryptToFile(textToEncrypt, n , e, "data.enc");
-		printf("\n");
-		return 0;
-	}
-	if (choice[0] == 'd') {
+	} else {
 		decryptFromFileToFile(d, n, "data.enc", "data.dec");
-		return 0;
-	}
-	if (choice[0] == 'q') {
-		return 0;
 	}
 	printf("\nDone.\n");
 	return 0;
@@ -89,7 +106,6 @@ int test(void) {
 	unsigned long p,q,n,d,r,e;
 	// unsigned long *encoded;
 	// char *decoded;
-	char choice[8] = "encrypt";
 	p = 151;
 	q = 233;
 	n = p*q;
