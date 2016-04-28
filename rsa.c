@@ -87,8 +87,6 @@ int main(int argc, char const *argv[]) {
 
 int test(void) {
 	unsigned long p,q,n,d,r,e;
-	// unsigned long *encoded;
-	// char *decoded;
 	char choice[8] = "encrypt";
 	p = 151;
 	q = 233;
